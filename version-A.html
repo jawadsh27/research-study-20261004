@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Study — Version A</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, Arial, sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 16px;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 680px;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+        .screen.active { display: block; }
+
+        .tag {
+            display: inline-block;
+            background: #e8f4fd;
+            color: #2980b9;
+            font-size: 0.78em;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+
+        h1 { font-size: 1.7em; color: #1a202c; margin-bottom: 18px; line-height: 1.3; }
+        h2 { font-size: 1.3em; color: #1a202c; margin-bottom: 14px; }
+        p  { color: #4a5568; line-height: 1.75; margin-bottom: 14px; font-size: 0.97em; }
+
+        .rule-box {
+            background: #f7fafc;
+            border-left: 4px solid #3498db;
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            margin: 18px 0;
+        }
+        .rule-box ul { padding-left: 18px; }
+        .rule-box li { color: #4a5568; line-height: 1.9; font-size: 0.95em; }
+
+        .btn {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 13px 36px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 24px;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn:hover:not(:disabled) { background: #2980b9; transform: translateY(-1px); }
+        .btn:disabled { background: #cbd5e0; cursor: not-allowed; transform: none; }
+
+        /* Timer */
+        .timer-wrap { text-align: center; margin: 20px 0 24px; }
+        .timer {
+            font-size: 3em;
+            font-weight: 700;
+            color: #2c3e50;
+            letter-spacing: 2px;
+        }
+        .timer.urgent { color: #e74c3c; animation: blink 0.8s ease-in-out infinite; }
+        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+        .timer-label { font-size: 0.85em; color: #a0aec0; margin-top: 4px; }
+
+        /* Study grid */
+        .study-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 6px;
+        }
+        @media (max-width: 480px) { .study-grid { grid-template-columns: 1fr; } }
+
+        .study-card {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 16px;
+        }
+        .study-card .word    { font-weight: 700; color: #2d3748; font-size: 1em; }
+        .study-card .meaning { color: #718096;   font-size: 0.9em; margin-top: 3px; }
+
+        /* Word bank */
+        .bank-label {
+            font-size: 0.8em;
+            color: #a0aec0;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
+        }
+        .word-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 52px;
+            padding: 10px 12px;
+            background: #f7fafc;
+            border: 2px dashed #cbd5e0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .word-bank.drag-over { border-color: #3498db; background: #ebf5fb; }
+
+        /* Chips */
+        .chip {
+            background: #3498db;
+            color: white;
+            padding: 7px 15px;
+            border-radius: 20px;
+            cursor: grab;
+            font-size: 0.93em;
+            font-weight: 600;
+            user-select: none;
+            transition: opacity 0.15s;
+            white-space: nowrap;
+        }
+        .chip:active  { cursor: grabbing; }
+        .chip.dragging { opacity: 0.3; }
+        .chip.in-zone  { background: #27ae60; }
+
+        /* Match rows */
+        .match-rows { display: flex; flex-direction: column; gap: 8px; }
+        .match-row  { display: flex; align-items: center; gap: 12px; }
+
+        .drop-zone {
+            flex: 0 0 140px;
+            min-height: 38px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            background: #fafafa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .drop-zone.drag-over { border-color: #3498db; background: #ebf5fb; }
+        .drop-zone.has-chip  { border-style: solid; border-color: #27ae60; background: #f0fdf4; }
+
+        .meaning-text { color: #4a5568; font-size: 0.93em; }
+
+        /* Score table */
+        .score-table { width: 100%; border-collapse: collapse; margin: 20px 0; text-align: left; }
+        .score-table td { padding: 11px 16px; border-bottom: 1px solid #e2e8f0; color: #4a5568; font-size: 0.97em; }
+        .score-table tr:last-child td { border-bottom: none; font-weight: 700; color: #1a202c; font-size: 1em; }
+
+        /* Done */
+        .done-wrap { text-align: center; padding: 20px 0 10px; }
+        .done-wrap h1 { color: #27ae60; font-size: 2em; margin-bottom: 16px; }
+        .done-wrap p  { font-size: 1.05em; }
+    </style>
+</head>
+<body>
+
+<!-- Instructions -->
+<div class="screen active" id="s-instructions">
+    <h1>Welcome to the Research Study</h1>
+    <p>Thank you for participating in my research project.</p>
+    <p>You will be given two tasks where you can review Spanish words in two durations — <strong>30 seconds</strong> and <strong>60 seconds</strong>. Your first task may be either the 30-second or the 60-second one. After each review period, you will drag and drop the words to match them to their meanings.</p>
+    <p>Before you begin, please read the following guidelines carefully:</p>
+    <div class="rule-box">
+        <ul>
+            <li>Please make sure you are <strong>not doing this right after you wake up</strong> or <strong>right before you go to bed</strong>.</li>
+            <li>Make sure there are <strong>no distractions</strong> around you during the task.</li>
+            <li>Please do <strong>not take any notes</strong> or <strong>ask for any help</strong>.</li>
+        </ul>
+    </div>
+    <p>The purpose of this study is <strong>not</strong> to test your ability to learn Spanish words — it is about how you <strong>organize and process information</strong>.</p>
+    <p>When you are ready, click below to begin.</p>
+    <button class="btn" onclick="startStudy(0)">Begin</button>
+</div>
+
+<!-- Study screen (reused each round) -->
+<div class="screen" id="s-study">
+    <div class="tag" id="study-tag"></div>
+    <h2>Study these words and their meanings</h2>
+    <p id="study-prompt"></p>
+    <div class="timer-wrap">
+        <div class="timer" id="timer">--</div>
+        <div class="timer-label">seconds remaining</div>
+    </div>
+    <div class="study-grid" id="study-grid"></div>
+</div>
+
+<!-- Match screen (reused each round) -->
+<div class="screen" id="s-match">
+    <div class="tag" id="match-tag"></div>
+    <h2>Match the words to their meanings</h2>
+    <p>Drag each Spanish word into the box next to its correct meaning.</p>
+    <div class="bank-label">Words</div>
+    <div class="word-bank" id="word-bank"></div>
+    <div class="match-rows" id="match-rows"></div>
+    <button class="btn" id="submit-btn" disabled onclick="submitMatch()">Submit</button>
+</div>
+
+<!-- Done -->
+<div class="screen" id="s-done">
+    <div class="done-wrap">
+        <h1>Thank You!</h1>
+        <p>You have completed the study. Here are your results:</p>
+        <table class="score-table" id="final-table"></table>
+        <p style="margin-top:20px;">Your participation is greatly appreciated.</p>
+    </div>
+</div>
+
+<script>
+// Version A: 30s first, then 60s
+const ROUNDS = [
+    {
+        time: 30,
+        words: [
+            { word: 'orgullo',    meaning: 'pride'     },
+            { word: 'almohadas',  meaning: 'pillow'    },
+            { word: 'mapache',    meaning: 'raccoon'   },
+            { word: 'frambuesa',  meaning: 'raspberry' },
+            { word: 'muñeca',     meaning: 'wrist'     },
+            { word: 'estantería', meaning: 'shelf'     },
+        ]
+    },
+    {
+        time: 60,
+        words: [
+            { word: 'rugoso',     meaning: 'wrinkled'   },
+            { word: 'promedio',   meaning: 'average'    },
+            { word: 'tijeras',    meaning: 'scissors'   },
+            { word: 'martillo',   meaning: 'hammer'     },
+            { word: 'tobillo',    meaning: 'ankle'      },
+            { word: 'arándano',   meaning: 'blueberry'  },
+        ]
+    }
+];
+
+const VERSION = 'A';
+let currentRound = 0;
+let scores = [];
+let roundResults = [];
+let timerInterval = null;
+let dragWord = null;
+let dragSourceZone = null;
+
+function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+// ── Study phase ───────────────────────────────────────────────
+function startStudy(roundIndex) {
+    currentRound = roundIndex;
+    const round = ROUNDS[roundIndex];
+    const n = roundIndex + 1;
+
+    document.getElementById('study-tag').textContent = `Round ${n} of ${ROUNDS.length}`;
+    document.getElementById('study-prompt').textContent =
+        `You have ${round.time} seconds to review the following words.`;
+
+    const grid = document.getElementById('study-grid');
+    grid.innerHTML = '';
+    round.words.forEach(({ word, meaning }) => {
+        const card = document.createElement('div');
+        card.className = 'study-card';
+        card.innerHTML = `<div class="word">${word}</div><div class="meaning">${meaning}</div>`;
+        grid.appendChild(card);
+    });
+
+    showScreen('s-study');
+    startTimer(round.time, () => startMatch(roundIndex));
+}
+
+function startTimer(seconds, onDone) {
+    clearInterval(timerInterval);
+    const el = document.getElementById('timer');
+    let remaining = seconds;
+    el.textContent = remaining;
+    el.classList.remove('urgent');
+
+    timerInterval = setInterval(() => {
+        remaining--;
+        el.textContent = remaining;
+        if (remaining <= 10) el.classList.add('urgent');
+        if (remaining <= 0) {
+            clearInterval(timerInterval);
+            onDone();
+        }
+    }, 1000);
+}
+
+// ── Match phase ───────────────────────────────────────────────
+function startMatch(roundIndex) {
+    const round = ROUNDS[roundIndex];
+    const n = roundIndex + 1;
+
+    document.getElementById('match-tag').textContent = `Round ${n} of ${ROUNDS.length} — Matching`;
+
+    const shuffledWords    = shuffle(round.words.map(w => w.word));
+    const shuffledMeanings = shuffle(round.words.map(w => w.meaning));
+
+    // Reset bank (replace node to remove stale listeners)
+    const oldBank = document.getElementById('word-bank');
+    const bank = oldBank.cloneNode(false);
+    oldBank.parentNode.replaceChild(bank, oldBank);
+
+    shuffledWords.forEach(word => bank.appendChild(makeChip(word)));
+
+    bank.ondragover = e => { e.preventDefault(); bank.classList.add('drag-over'); };
+    bank.ondragleave = () => bank.classList.remove('drag-over');
+    bank.ondrop = e => {
+        e.preventDefault();
+        bank.classList.remove('drag-over');
+        returnToBank();
+    };
+
+    // Match rows
+    const rows = document.getElementById('match-rows');
+    rows.innerHTML = '';
+    shuffledMeanings.forEach(meaning => {
+        const row = document.createElement('div');
+        row.className = 'match-row';
+
+        const zone = document.createElement('div');
+        zone.className = 'drop-zone';
+        zone.dataset.meaning = meaning;
+
+        zone.ondragover  = e => { e.preventDefault(); zone.classList.add('drag-over'); };
+        zone.ondragleave = () => zone.classList.remove('drag-over');
+        zone.ondrop      = e => { e.preventDefault(); zone.classList.remove('drag-over'); dropOnZone(zone); };
+
+        const label = document.createElement('span');
+        label.className = 'meaning-text';
+        label.textContent = meaning;
+
+        row.appendChild(zone);
+        row.appendChild(label);
+        rows.appendChild(row);
+    });
+
+    document.getElementById('submit-btn').disabled = true;
+    showScreen('s-match');
+}
+
+function makeChip(word) {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.textContent = word;
+    chip.draggable = true;
+    chip.dataset.word = word;
+
+    chip.ondragstart = () => {
+        dragWord = word;
+        dragSourceZone = chip.parentElement.classList.contains('drop-zone')
+            ? chip.parentElement
+            : null;
+        requestAnimationFrame(() => chip.classList.add('dragging'));
+    };
+    chip.ondragend = () => chip.classList.remove('dragging');
+    return chip;
+}
+
+function returnToBank() {
+    if (!dragWord) return;
+    if (dragSourceZone) {
+        dragSourceZone.innerHTML = '';
+        dragSourceZone.classList.remove('has-chip');
+        dragSourceZone = null;
+    }
+    const bank = document.getElementById('word-bank');
+    bank.appendChild(makeChip(dragWord));
+    dragWord = null;
+    checkAllFilled();
+}
+
+function dropOnZone(zone) {
+    if (!dragWord) return;
+
+    // Displace existing chip back to bank
+    const existing = zone.querySelector('.chip');
+    if (existing) {
+        const displaced = existing.dataset.word;
+        zone.innerHTML = '';
+        zone.classList.remove('has-chip');
+        document.getElementById('word-bank').appendChild(makeChip(displaced));
+    }
+
+    // Clear source
+    if (dragSourceZone) {
+        dragSourceZone.innerHTML = '';
+        dragSourceZone.classList.remove('has-chip');
+    } else {
+        const bank = document.getElementById('word-bank');
+        const inBank = [...bank.querySelectorAll('.chip')].find(c => c.dataset.word === dragWord);
+        if (inBank) inBank.remove();
+    }
+
+    // Place chip
+    const chip = makeChip(dragWord);
+    chip.classList.add('in-zone');
+    zone.appendChild(chip);
+    zone.classList.add('has-chip');
+
+    dragWord = null;
+    dragSourceZone = null;
+    checkAllFilled();
+}
+
+function checkAllFilled() {
+    const zones = [...document.querySelectorAll('#match-rows .drop-zone')];
+    document.getElementById('submit-btn').disabled = !zones.every(z => z.querySelector('.chip'));
+}
+
+function submitMatch() {
+    const round = ROUNDS[currentRound];
+    const zones = document.querySelectorAll('#match-rows .drop-zone');
+    let score = 0;
+    const answerParts = [];
+
+    zones.forEach(zone => {
+        const chip = zone.querySelector('.chip');
+        if (!chip) return;
+        const placed  = chip.dataset.word.toLowerCase();
+        const meaning = zone.dataset.meaning.toLowerCase();
+        const correct = round.words.find(w => w.meaning.toLowerCase() === meaning);
+        const isCorrect = correct && correct.word.toLowerCase() === placed;
+        if (isCorrect) score += 2;
+        const mark = isCorrect ? '✓' : `✗ (correct: ${correct ? correct.word : '?'})`;
+        answerParts.push(`${zone.dataset.meaning} → ${chip.dataset.word} ${mark}`);
+    });
+
+    scores.push(score);
+    roundResults.push({ round: currentRound + 1, time: round.time, score, answers: answerParts.join(' | ') });
+
+    const next = currentRound + 1;
+    if (next < ROUNDS.length) {
+        startStudy(next);
+    } else {
+        const total = scores.reduce((a, b) => a + b, 0);
+        const payload = { version: VERSION };
+        roundResults.forEach((r, i) => {
+            payload[`round_${i + 1}_time`]    = `${r.time}s`;
+            payload[`round_${i + 1}_score`]   = `${r.score}/12`;
+            payload[`round_${i + 1}_answers`] = r.answers;
+        });
+        payload['total_score'] = `${total}/24`;
+        fetch('https://formspree.io/f/xaeqwvkv', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).catch(() => {});
+
+        const rows = ROUNDS.map((r, i) => `
+            <tr>
+                <td>${r.time}-second round</td>
+                <td style="text-align:right"><strong>${scores[i]} / 12</strong></td>
+            </tr>
+        `).join('');
+        document.getElementById('final-table').innerHTML = `
+            ${rows}
+            <tr>
+                <td><strong>Total</strong></td>
+                <td style="text-align:right"><strong>${total} / 24</strong></td>
+            </tr>
+        `;
+        showScreen('s-done');
+    }
+}
+</script>
+</body>
+</html>
