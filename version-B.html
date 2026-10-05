@@ -533,10 +533,10 @@ function submitMatch() {
         const payload = { version: VERSION };
         roundResults.forEach((r, i) => {
             payload[`round_${i + 1}_time`]    = `${r.time}s`;
-            payload[`round_${i + 1}_score`]   = `${r.score}/12`;
+            payload[`round_${i + 1}_score`]   = `${r.score}/${ROUNDS[i].words.length * 2}`;
             payload[`round_${i + 1}_answers`] = r.answers;
         });
-        payload['total_score'] = `${total}/24`;
+        payload['total_score'] = `${total}/${ROUNDS.reduce((a, r) => a + r.words.length * 2, 0)}`;
         fetch('https://formspree.io/f/xaeqwvkv', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
