@@ -237,6 +237,8 @@ const ROUNDS = [
             { word: 'martillo',   meaning: 'hammer'     },
             { word: 'tobillo',    meaning: 'ankle'      },
             { word: 'arándano',   meaning: 'blueberry'  },
+            { word: 'relámpago',  meaning: 'lightning'  },
+            { word: 'madrugada',  meaning: 'dawn'       },
         ]
     },
     {
@@ -248,6 +250,8 @@ const ROUNDS = [
             { word: 'frambuesa',  meaning: 'raspberry' },
             { word: 'muñeca',     meaning: 'wrist'     },
             { word: 'estantería', meaning: 'shelf'     },
+            { word: 'cangrejo',   meaning: 'crab'      },
+            { word: 'bufanda',    meaning: 'scarf'     },
         ]
     }
 ];
@@ -538,14 +542,14 @@ function submitMatch() {
         const rows = ROUNDS.map((r, i) => `
             <tr>
                 <td>${r.time}-second round</td>
-                <td style="text-align:right"><strong>${scores[i]} / 12</strong></td>
+                <td style="text-align:right"><strong>${scores[i]} / 16</strong></td>
             </tr>
         `).join('');
         document.getElementById('final-table').innerHTML = `
             ${rows}
             <tr>
                 <td><strong>Total</strong></td>
-                <td style="text-align:right"><strong>${total} / 24</strong></td>
+                <td style="text-align:right"><strong>${total} / 32</strong></td>
             </tr>
         `;
         showScreen('s-done');
