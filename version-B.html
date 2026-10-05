@@ -379,12 +379,70 @@ function makeChip(word) {
     chip.ondragstart = () => {
         dragWord = word;
         dragSourceZone = chip.parentElement.classList.contains('drop-zone')
-            ? chip.parentElement
-            : null;
+            ? chip.parentElement : null;
         requestAnimationFrame(() => chip.classList.add('dragging'));
     };
     chip.ondragend = () => chip.classList.remove('dragging');
+
+    addTouchSupport(chip);
     return chip;
+}
+
+function addTouchSupport(chip) {
+    let clone = null;
+    let offsetX = 0, offsetY = 0;
+
+    chip.addEventListener('touchstart', e => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = chip.getBoundingClientRect();
+        offsetX = touch.clientX - rect.left;
+        offsetY = touch.clientY - rect.top;
+
+        dragWord = chip.dataset.word;
+        dragSourceZone = chip.parentElement.classList.contains('drop-zone')
+            ? chip.parentElement : null;
+
+        clone = chip.cloneNode(true);
+        clone.style.cssText = `position:fixed;left:${touch.clientX - offsetX}px;top:${touch.clientY - offsetY}px;width:${rect.width}px;opacity:0.85;pointer-events:none;z-index:9999;margin:0;transition:none;`;
+        document.body.appendChild(clone);
+        chip.style.opacity = '0.3';
+    }, { passive: false });
+
+    chip.addEventListener('touchmove', e => {
+        e.preventDefault();
+        if (!clone) return;
+        const touch = e.touches[0];
+        clone.style.left = `${touch.clientX - offsetX}px`;
+        clone.style.top  = `${touch.clientY - offsetY}px`;
+
+        document.querySelectorAll('#match-rows .drop-zone').forEach(z => z.classList.remove('drag-over'));
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        const zone = el ? el.closest('.drop-zone') : null;
+        if (zone) zone.classList.add('drag-over');
+    }, { passive: false });
+
+    chip.addEventListener('touchend', e => {
+        e.preventDefault();
+        if (!clone) return;
+        const touch = e.changedTouches[0];
+
+        clone.remove();
+        clone = null;
+        chip.style.opacity = '';
+
+        document.querySelectorAll('#match-rows .drop-zone').forEach(z => z.classList.remove('drag-over'));
+
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        const zone = el ? el.closest('.drop-zone') : null;
+
+        if (zone) {
+            dropOnZone(zone);
+        } else {
+            dragWord = null;
+            dragSourceZone = null;
+        }
+    }, { passive: false });
 }
 
 function returnToBank() {
