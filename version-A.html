@@ -231,27 +231,31 @@ const ROUNDS = [
     {
         time: 30,
         words: [
-            { word: 'orgullo',    meaning: 'pride'     },
-            { word: 'almohadas',  meaning: 'pillow'    },
-            { word: 'mapache',    meaning: 'raccoon'   },
-            { word: 'frambuesa',  meaning: 'raspberry' },
-            { word: 'muñeca',     meaning: 'wrist'     },
-            { word: 'estantería', meaning: 'shelf'     },
-            { word: 'cangrejo',   meaning: 'crab'      },
-            { word: 'bufanda',    meaning: 'scarf'     },
+            { word: 'orgullo',    meaning: 'pride'        },
+            { word: 'almohadas',  meaning: 'pillow'       },
+            { word: 'mapache',    meaning: 'raccoon'      },
+            { word: 'frambuesa',  meaning: 'raspberry'    },
+            { word: 'muñeca',     meaning: 'wrist'        },
+            { word: 'estantería', meaning: 'shelf'        },
+            { word: 'peluquero',  meaning: 'hairdresser'  },
+            { word: 'afeitarse',  meaning: 'to shave'     },
+            { word: 'arreglar',   meaning: 'to fix'       },
+            { word: 'servilleta', meaning: 'napkin'       },
         ]
     },
     {
         time: 60,
         words: [
-            { word: 'rugoso',     meaning: 'wrinkled'   },
-            { word: 'promedio',   meaning: 'average'    },
-            { word: 'tijeras',    meaning: 'scissors'   },
-            { word: 'martillo',   meaning: 'hammer'     },
-            { word: 'tobillo',    meaning: 'ankle'      },
-            { word: 'arándano',   meaning: 'blueberry'  },
-            { word: 'relámpago',  meaning: 'lightning'  },
-            { word: 'madrugada',  meaning: 'dawn'       },
+            { word: 'rugoso',     meaning: 'wrinkled'     },
+            { word: 'promedio',   meaning: 'average'      },
+            { word: 'tijeras',    meaning: 'scissors'     },
+            { word: 'martillo',   meaning: 'hammer'       },
+            { word: 'tobillo',    meaning: 'ankle'        },
+            { word: 'arándano',   meaning: 'blueberry'    },
+            { word: 'pantalla',   meaning: 'screen'       },
+            { word: 'solicitar',  meaning: 'to request'   },
+            { word: 'anfitrión',  meaning: 'host'         },
+            { word: 'natación',   meaning: 'swimming'     },
         ]
     }
 ];
@@ -542,14 +546,14 @@ function submitMatch() {
         const rows = ROUNDS.map((r, i) => `
             <tr>
                 <td>${r.time}-second round</td>
-                <td style="text-align:right"><strong>${scores[i]} / 16</strong></td>
+                <td style="text-align:right"><strong>${scores[i]} / 20</strong></td>
             </tr>
         `).join('');
         document.getElementById('final-table').innerHTML = `
             ${rows}
             <tr>
                 <td><strong>Total</strong></td>
-                <td style="text-align:right"><strong>${total} / 32</strong></td>
+                <td style="text-align:right"><strong>${total} / 40</strong></td>
             </tr>
         `;
         showScreen('s-done');
